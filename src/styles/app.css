@@ -1,0 +1,26 @@
+/* Page reset and the animations the screens use. Verbatim from the export. */
+
+html, body { margin: 0; background: var(--color-bg); }
+a { color: var(--color-accent); }
+a:hover { color: var(--color-accent-600); }
+@keyframes tdCaret { 0%, 48% { opacity: 1; } 49%, 100% { opacity: 0; } }
+@keyframes tdRise { from { transform: translateY(34px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes tdFlip { 0% { transform: scaleX(1); } 50% { transform: scaleX(0.02); } 100% { transform: scaleX(1); } }
+@keyframes tdFade { from { opacity: 0; } to { opacity: 1; } }
+textarea::placeholder { color: color-mix(in srgb, var(--color-text) 30%, transparent); }
+textarea, select, input { font: inherit; color: inherit; }
+select { -webkit-appearance: none; appearance: none; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 18%, transparent); }
+::-webkit-scrollbar-track { background: transparent; }
+image-slot { --slot-bg: transparent; }
+  
+/* Hover states. The design export carried these on a `style-hover` attribute,
+   which has no React equivalent — they become classes here. `!important` is
+   load-bearing: the base values are inline styles computed per element (the
+   tray tilt, for instance), and a class cannot outrank an inline style. */
+.td-link:hover { color: var(--color-accent) !important; }
+.td-accent-600:hover { color: var(--color-accent-600) !important; }
+.td-ink:hover { color: var(--color-text) !important; }
+.td-lift:hover { transform: translateY(-10px) !important; }
+.td-tray:hover { transform: translateY(-7px) scale(1.14) !important; }

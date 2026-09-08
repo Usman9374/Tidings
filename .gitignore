@@ -1,0 +1,19 @@
+# dependencies
+node_modules
+
+# build output
+dist
+
+# macOS
+.DS_Store
+
+# logs
+*.log
+npm-debug.log*
+
+# editor
+.vscode
+.idea
+
+# local editor/tooling config
+.claude
