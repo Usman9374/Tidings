@@ -218,6 +218,10 @@
   --font-heading: "Source Serif 4", system-ui, sans-serif;
   --font-heading-weight: 600;
   --font-body: "Source Serif 4", system-ui, sans-serif;
+  /* Chrome type, chosen by Usman in Sept 2026: an Abril Fatface wordmark and
+     Libre Franklin for navigation, the toolbar and menus (loaded in main.jsx). */
+  --font-display: "Abril Fatface", "Source Serif 4", Georgia, serif;
+  --font-ui: "Libre Franklin", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --space-1: 5.0px;
   --space-2: 10.0px;

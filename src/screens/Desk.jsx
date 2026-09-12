@@ -1,4 +1,7 @@
 import ImageSlot from '../components/ImageSlot';
+import Transformable from '../components/Transformable';
+
+const hiddenInput = { position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' };
 
 /**
  * Screens 3–5 — the writing surface itself, everything pinned to it, and the
@@ -13,31 +16,10 @@ export default function Desk({ v }) {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       gap: '20px', width: '100%', minHeight: '100%', padding: '6px 26px 10px',
     }}>
-      {v.askEnvelope && (
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '20px', animation: 'tdFade 400ms ease both' }}>
-          <span style={{ fontSize: '15px', fontStyle: 'italic' }}>Shall it travel in an envelope?</span>
-          <button
-            type="button" onClick={v.envYes} className="td-accent-600"
-            style={{
-              background: 'none', border: 0, padding: 0, cursor: 'pointer', fontSize: '13px',
-              letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-accent)',
-            }}
-          >yes</button>
-          <button
-            type="button" onClick={v.envNo} className="td-ink"
-            style={{
-              background: 'none', border: 0, padding: 0, cursor: 'pointer', fontSize: '13px',
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              color: 'color-mix(in srgb, var(--color-text) 50%, transparent)',
-            }}
-          >no, just send it</button>
-        </div>
-      )}
-
       {v.showLetter && (
-        <div ref={v.surfRef} onClick={v.surfaceClick} style={v.surfaceStyle}>
+        <div ref={v.surfRef} onMouseDown={v.surfaceMouseDown} onClick={v.surfaceClick} style={v.surfaceStyle}>
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            <img src={v.paperSrc} alt="" style={v.paperImgStyle} />
+            <img src={v.paperSrc} alt="" draggable="false" style={v.paperImgStyle} />
           </div>
 
           {!!v.paper.margin && <div style={v.marginRuleStyle} />}
@@ -47,50 +29,76 @@ export default function Desk({ v }) {
             <>
               <div style={v.cardDividerStyle} />
               <div style={v.cardAddressStyle}>
-                <span style={{ display: 'block', height: '1px', background: 'color-mix(in srgb, var(--color-text) 30%, transparent)', marginBottom: '16%' }} />
-                <span style={{ display: 'block', height: '1px', background: 'color-mix(in srgb, var(--color-text) 30%, transparent)', marginBottom: '16%' }} />
-                <span style={{ display: 'block', height: '1px', background: 'color-mix(in srgb, var(--color-text) 30%, transparent)' }} />
+                {v.addressLines.map((a) => (
+                  <input
+                    key={a.key} data-address="" value={a.value} onChange={a.onChange} aria-label={a.label}
+                    readOnly={!v.editable} tabIndex={v.editable ? 0 : -1} spellCheck={v.spell}
+                    maxLength={60} autoComplete="off" style={v.addressStyle}
+                  />
+                ))}
               </div>
             </>
           )}
 
+          {v.editable && <div ref={v.mirrorRef} aria-hidden="true" style={v.mirrorStyle} />}
+
           {v.editable && (
             <div
               ref={v.writeRef}
-              contentEditable
+              contentEditable="plaintext-only"
               suppressContentEditableWarning
-              onInput={v.onWrite}
+              role="textbox" aria-multiline="true" aria-label="Your letter" data-text=""
               spellCheck={v.spell}
-              data-text="1"
+              onInput={v.onWrite}
+              onCompositionStart={v.onCompositionStart}
+              onCompositionEnd={v.onCompositionEnd}
               style={v.writeStyle}
             />
           )}
 
-          {v.readOnly && <div data-text="1" style={v.readStyle}>{v.shownText}</div>}
+          {v.readOnly && <div data-text="" style={v.readStyle}>{v.shownText}</div>}
 
-          {v.stickers.map((s) => (
-            <img
-              key={s.id} src={s.src} alt="" draggable="false"
-              onPointerDown={s.grab} onDoubleClick={s.remove} style={s.style}
-            />
+          {v.stickers.map((k) => (
+            <Transformable key={k.id} {...k.t}>
+              <img src={k.src} alt={k.title} draggable="false" style={k.imgStyle} />
+            </Transformable>
           ))}
 
           {v.polaroids.map((p) => (
-            <div key={p.id} style={p.frameStyle}>
-              <div onPointerDown={p.grab} style={p.gripStyle} />
-              <div style={p.photoStyle}>
-                <ImageSlot id={p.slotId} shape="rect" fit="cover" src={p.src} placeholder="drop a photo" />
+            <Transformable
+              key={p.id} {...p.t}
+              extra={p.canReplace && (
+                <label onPointerDown={(e) => e.stopPropagation()} style={v.replacePhotoStyle}>
+                  Replace photo
+                  <input
+                    type="file" accept="image/*" style={hiddenInput}
+                    onChange={(e) => { p.onFile(e.target.files && e.target.files[0]); e.target.value = ''; }}
+                  />
+                </label>
+              )}
+            >
+              <div style={p.frameStyle}>
+                <div style={p.photoStyle}>
+                  <ImageSlot
+                    src={p.src} onFile={p.onFile} fit="cover" placeholder="Add a photo"
+                    interactive={p.editable} pickOnClick={p.editable && !p.src}
+                  />
+                </div>
+                <input
+                  value={p.caption} onChange={p.setCaption} readOnly={!p.editable} tabIndex={p.editable ? 0 : -1}
+                  maxLength={30} placeholder={p.editable ? 'Caption' : ''} aria-label="Photo caption"
+                  style={p.captionStyle}
+                />
               </div>
-              <input
-                value={p.caption} onChange={p.setCaption} maxLength={30}
-                placeholder="write something" style={p.captionStyle}
-              />
-            </div>
+            </Transformable>
           ))}
 
           {v.signature && (
-            <div style={v.sigStyle}>
-              <ImageSlot id="tidings-signature" shape="rect" fit="contain" placeholder="Drop your signature" />
+            <div data-obj="" style={v.sigStyle}>
+              <ImageSlot
+                src={v.signatureSrc} onFile={v.setSignature} fit="contain" placeholder="Add your signature"
+                interactive={v.editable} pickOnClick={v.editable}
+              />
             </div>
           )}
         </div>
@@ -99,26 +107,32 @@ export default function Desk({ v }) {
       {v.showEnvelope && (
         <div style={v.envWrapStyle}>
           <div onClick={v.envelopeClick} style={v.envStyle}>
-            <div style={v.envFlapStyle} />
-            <div style={{ position: 'absolute', left: '10%', top: '58%', right: '46%', zIndex: 3 }}>
-              <div style={{ fontSize: '0.9em', fontStyle: 'italic', opacity: 0.5, marginBottom: '7px' }}>to</div>
-              <div style={{ height: '1px', background: 'color-mix(in srgb, var(--color-text) 34%, transparent)', marginBottom: '12px' }} />
-              <div style={{ height: '1px', background: 'color-mix(in srgb, var(--color-text) 34%, transparent)', marginBottom: '12px' }} />
-              <div style={{ height: '1px', background: 'color-mix(in srgb, var(--color-text) 34%, transparent)', width: '62%' }} />
-            </div>
+            {v.envImgSrc && (
+              <img
+                src={v.envImgSrc} alt="An envelope" draggable="false"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
+              />
+            )}
+            {v.envFlapStyle && <div style={v.envFlapStyle} />}
+            {v.envAddrStyle && (
+              <div style={v.envAddrStyle} onClick={(e) => e.stopPropagation()}>
+                <div style={v.envAddrLabelStyle}>To</div>
+                {v.envAddressLines.map((a) => (
+                  <input
+                    key={a.key} value={a.value} onChange={a.onChange} aria-label={a.label} placeholder={a.placeholder}
+                    readOnly={!v.isS4} tabIndex={v.isS4 ? 0 : -1} spellCheck={v.spell}
+                    maxLength={40} autoComplete="off" style={v.envAddressStyle}
+                  />
+                ))}
+              </div>
+            )}
             {v.envStamp && <img src={v.envStamp.img} alt="Stamp" style={v.envStampStyle} />}
             {v.envSealStyle && <img src={v.envSealSrc} alt="Wax seal" style={v.envSealStyle} />}
           </div>
         </div>
       )}
 
-      {v.centreHint && (
-        <div style={{
-          fontSize: '13px', fontStyle: 'italic',
-          color: 'color-mix(in srgb, var(--color-text) 55%, transparent)',
-          animation: 'tdFade 600ms ease both',
-        }}>{v.centreHint}</div>
-      )}
+      {v.centreHint && <div style={v.hintStyle}>{v.centreHint}</div>}
     </div>
   );
 }

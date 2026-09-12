@@ -1,5 +1,3 @@
-import { POSTCARD_FACE } from '../assets';
-
 /**
  * Screens 6 and 7 — the machine, and the page it typed. The sheet is fed up out
  * of the platen, so the machine image sits over the sheet's bottom edge and a
@@ -17,7 +15,7 @@ export default function Typewriter({ v }) {
     }}>
       <div style={v.twAssemblyStyle}>
         <div style={v.sheetStyle}>
-          <img src={POSTCARD_FACE} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={v.twSheetSrc} alt="" draggable="false" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
 
           {v.isS6 && (
             <textarea
@@ -38,8 +36,8 @@ export default function Typewriter({ v }) {
         {v.isS6 && (
           <div style={v.machineWrapStyle}>
             <img
-              src={v.machineSrc} alt="A typewriter"
-              style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 14px 22px color-mix(in srgb, #201e1d 16%, transparent))' }}
+              src={v.machineSrc} alt={v.machineLabel} draggable="false"
+              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'fill', filter: 'drop-shadow(0 14px 22px color-mix(in srgb, #201e1d 16%, transparent))' }}
             />
             {v.keyMarks.map((k) => <span key={k.key} style={k.style} />)}
           </div>

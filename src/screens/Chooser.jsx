@@ -1,4 +1,4 @@
-import { R, PAPER_STACK, TYPEWRITER_HERO, POSTCARD_FACE } from '../assets';
+import { LETTER_HERO, POSTCARD_HERO, DIARY_HERO, TYPEWRITER_HERO } from '../assets';
 
 // The objects share a ground line — align-items:flex-end is what makes them
 // read as things resting on a desk rather than floating. The row itself is
@@ -15,13 +15,22 @@ const pick = (gapLabel) => ({
   transition: 'transform 320ms cubic-bezier(.2,.7,.2,1)',
 });
 
-const caption = { fontSize: '12.5px', letterSpacing: '0.2em', textTransform: 'uppercase' };
+// Set in the UI face to match the masthead and toolbar.
+const caption = { fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: '14px', letterSpacing: '0.01em' };
 
 // A ceiling on width derived from the height left over once the caption, the
 // gap and the padding are paid for (~90px). Capping WIDTH rather than height
 // keeps each object's aspect ratio intact as it shrinks. At any ordinary window
 // size these never bind — they only stop a short window from clipping the row.
 const fitW = (aspect) => `calc((100cqh - 90px) / ${aspect})`;
+
+// A cut-out casts its own silhouette; a flat sheet of paper casts a rectangle.
+const cutOut = (y, blur, pct) => ({
+  filter: `drop-shadow(0 ${y}px ${blur}px color-mix(in srgb, #201e1d ${pct}%, transparent)) drop-shadow(0 3px 5px color-mix(in srgb, #201e1d 13%, transparent))`,
+});
+const sheet = {
+  boxShadow: '0 20px 30px color-mix(in srgb, #201e1d 16%, transparent), 0 2px 5px color-mix(in srgb, #201e1d 12%, transparent)',
+};
 
 /** Screens 1 and 2 — choose how to write, then what to write on. */
 export default function Chooser({ v }) {
@@ -30,25 +39,21 @@ export default function Chooser({ v }) {
       <div style={{ ...row('clamp(38px, 8vw, 110px)'), animation: 'tdFade 700ms ease both' }}>
         <button type="button" onClick={v.pickLetterPath} className="td-lift" style={pick('20px')}>
           <img
-            src={PAPER_STACK} alt="A letter on a stack of paper"
+            src={LETTER_HERO} alt="A sheet of ruled writing paper"
             style={{
-              width: 'clamp(150px, 19vw, 260px)', maxWidth: fitW(0.741),
-              transform: 'rotate(-2.4deg)',
-              filter: 'drop-shadow(0 22px 30px color-mix(in srgb, #201e1d 17%, transparent)) drop-shadow(0 2px 4px color-mix(in srgb, #201e1d 13%, transparent))',
+              display: 'block', width: 'clamp(180px, 24vw, 330px)', maxWidth: fitW(0.7073),
+              transform: 'rotate(-2.4deg)', ...sheet,
             }}
           />
-          <span style={caption}>write a letter</span>
+          <span style={caption}>Write a letter</span>
         </button>
 
         <button type="button" onClick={v.pickTypewriterPath} className="td-lift" style={pick('20px')}>
           <img
-            src={TYPEWRITER_HERO} alt="A red portable typewriter"
-            style={{
-              width: 'clamp(230px, 34vw, 470px)', maxWidth: fitW(1),
-              filter: 'drop-shadow(0 26px 30px color-mix(in srgb, #201e1d 20%, transparent)) drop-shadow(0 3px 5px color-mix(in srgb, #201e1d 16%, transparent))',
-            }}
+            src={TYPEWRITER_HERO} alt="A burgundy portable typewriter"
+            style={{ width: 'clamp(230px, 34vw, 470px)', maxWidth: fitW(0.7894), ...cutOut(26, 30, 20) }}
           />
-          <span style={caption}>use the typewriter</span>
+          <span style={caption}>Use the typewriter</span>
         </button>
       </div>
     );
@@ -59,36 +64,32 @@ export default function Chooser({ v }) {
       <div style={{ ...row('clamp(30px, 6vw, 84px)'), animation: 'tdFade 520ms ease both' }}>
         <button type="button" onClick={v.pickDiary} className="td-lift" style={pick('18px')}>
           <img
-            src={R('assets/notebook-open.png')} alt="An open notebook"
-            style={{
-              width: 'clamp(210px, 30vw, 430px)', maxWidth: fitW(1),
-              filter: 'drop-shadow(0 24px 30px color-mix(in srgb, #201e1d 18%, transparent)) drop-shadow(0 3px 5px color-mix(in srgb, #201e1d 13%, transparent))',
-            }}
+            src={DIARY_HERO} alt="An open notebook"
+            style={{ width: 'clamp(210px, 30vw, 430px)', maxWidth: fitW(0.6161), ...cutOut(24, 30, 18) }}
           />
-          <span style={caption}>a diary</span>
+          <span style={caption}>Diary</span>
         </button>
 
         <button type="button" onClick={v.pickPage} className="td-lift" style={pick('18px')}>
           <img
-            src={PAPER_STACK} alt="A letter on writing paper"
+            src={LETTER_HERO} alt="A sheet of ruled writing paper"
             style={{
-              width: 'clamp(150px, 18vw, 250px)', maxWidth: fitW(0.741),
-              transform: 'rotate(1.8deg)',
-              filter: 'drop-shadow(0 20px 28px color-mix(in srgb, #201e1d 16%, transparent)) drop-shadow(0 2px 4px color-mix(in srgb, #201e1d 12%, transparent))',
+              display: 'block', width: 'clamp(170px, 23vw, 310px)', maxWidth: fitW(0.7073),
+              transform: 'rotate(1.8deg)', ...sheet,
             }}
           />
-          <span style={caption}>a letter</span>
+          <span style={caption}>Letter</span>
         </button>
 
         <button type="button" onClick={v.pickPostcard} className="td-lift" style={pick('18px')}>
-          <span style={{
-            display: 'block', width: 'clamp(170px, 22vw, 290px)', maxWidth: fitW(0.65),
-            aspectRatio: '1 / 0.65', overflow: 'hidden', transform: 'rotate(-1.4deg)',
-            boxShadow: '0 20px 30px color-mix(in srgb, #201e1d 16%, transparent), 0 2px 5px color-mix(in srgb, #201e1d 12%, transparent)',
-          }}>
-            <img src={POSTCARD_FACE} alt="A post card" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </span>
-          <span style={caption}>a post card</span>
+          <img
+            src={POSTCARD_HERO} alt="A card bordered with gold stars"
+            style={{
+              display: 'block', width: 'clamp(170px, 23vw, 310px)', maxWidth: fitW(0.6664),
+              transform: 'rotate(-1.4deg)', ...sheet,
+            }}
+          />
+          <span style={caption}>Postcard</span>
         </button>
       </div>
     );
