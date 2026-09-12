@@ -114,8 +114,11 @@ export default function Desk({ v }) {
               />
             )}
             {v.envFlapStyle && <div style={v.envFlapStyle} />}
+            {/* The address keeps clicks to itself only while it can be typed in.
+                On the reader's screen that was swallowing the click that opens
+                the envelope, so an addressed envelope could not be opened. */}
             {v.envAddrStyle && (
-              <div style={v.envAddrStyle} onClick={(e) => e.stopPropagation()}>
+              <div style={v.envAddrStyle} onClick={v.isS4 ? (e) => e.stopPropagation() : undefined}>
                 <div style={v.envAddrLabelStyle}>To</div>
                 {v.envAddressLines.map((a) => (
                   <input

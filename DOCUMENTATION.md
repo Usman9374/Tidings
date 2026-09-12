@@ -91,7 +91,7 @@ than typed into a message box.
 of a real notebook, and a diary doesn't go in an envelope.
 
 **Someone who likes typewriters.** The typewriter path is its own small toy:
-eight machines, and the key you press lights up on the one you picked.
+seven machines, and the key you press lights up on the one you picked.
 
 It is **not** a word processor, not a mail client, and not a team tool. There
 are no accounts, no folders and no collaborators. One person, one letter, one
@@ -103,8 +103,7 @@ sitting.
 
 **Tidings opens with a sample letter already in it** — a note to "Amal" signed
 "Rae", with a P.S. on the back, three stickers and a polaroid. Nothing is blank
-when you arrive, which is why the counter already reads `133 / 700` and the
-toolbar already says "Sheet full — add another" on some papers.
+when you arrive, which is why the counter already reads `93 / 700`.
 
 To start your own letter, click the paper, select it all with **Ctrl+A**
 (**Cmd+A** on a Mac) and type over it. That clears the front. The back still has
@@ -194,7 +193,7 @@ of text. One undo removes the padding.
 
 ### The word count
 
-The counter in the bottom-right reads something like `133 / 700`. That's the
+The counter in the bottom-right reads something like `93 / 700`. That's the
 whole letter — every sheet, both sides — against a limit of 700 words. The limit
 is hard: at 700, new words are refused as you type and pasted text is trimmed to
 fit. Nothing you have already written is deleted.
@@ -211,7 +210,9 @@ from the moment you arrive.)
 ### More than one sheet
 
 **Add a sheet** puts a fresh sheet on the stack and turns to it. Once there's
-more than one, a pager appears in the top-right: `‹ Sheet 2 of 2 ›`.
+more than one, a pager appears in the top-right: `‹ Sheet 2 of 2 ›`. It stays
+with you through the envelope and send screens, so your reader can turn the
+pages too.
 
 ![Two sheets, with the pager in the header](docs/screenshots/19-two-sheets.png)
 
@@ -370,7 +371,7 @@ Four ways to change what your paper is lying on:
 2. **Backdrops** — 47 pictures
 3. **Your own** — a picture from your computer, at least 1280 × 720 on its long
    and short side. Anything smaller is refused, with a note in the drawer telling
-   you the size you offered.
+   you the size you offered; a file that isn't a picture is refused the same way.
 4. **Custom colour** — a colour wheel with a brightness slider
 
 ![A backdrop behind the sheet](docs/screenshots/18-backdrop.png)
@@ -521,9 +522,6 @@ A sheet is wound into the platen, and the machine covers the sheet's bottom
 edge so the paper looks fed out of the roller. Type, and the words appear on the
 paper.
 
-**Click the paper first.** Nothing has the keyboard when you arrive, so your
-first keystrokes light up the keys without typing anything.
-
 ### The keys light up
 
 ![A key lighting up](docs/screenshots/35-typewriter-key.png)
@@ -532,8 +530,7 @@ Every machine's keyboard was measured off its own photograph, so the key that
 lights is the real key on that real machine.
 
 Each machine only knows its own keys. On **the omont** only Q W E R T Y U I O P
-A S and the space bar light up — its other keys weren't in the photograph. On
-**the night machine** there's no `1` and no comma; it has `;` and `?` instead.
+A S and the space bar light up — its other keys weren't in the photograph.
 **The olympia** and **the studio olympia** are German layouts, so Z and Y are
 swapped. Keys that don't light still type perfectly normally.
 
@@ -541,25 +538,25 @@ swapped. Keys that don't light still type perfectly normally.
 
 ![The Machine menu](docs/screenshots/32-menu-machine.png)
 
-Eight machines: the burgundy · the olympia · the studio olympia · the underwood ·
-the portable · the antique · the omont · the night machine
+Seven machines: the burgundy · the olympia · the studio olympia · the underwood ·
+the portable · the antique · the omont
 
-![The night machine](docs/screenshots/33-typewriter-night.png)
+![The studio olympia](docs/screenshots/33-typewriter-studio.png)
 
 ### Sheet
 
 ![The Sheet menu](docs/screenshots/34-menu-sheet.png)
 
 What's wound into the platen: **Cream**, **Ivory**, **Star paper** or **Kraft**.
-The sheet is cropped to that machine's own paper shape, so the same cream page is
-a tall portrait on six of the eight machines, a slightly wide band on the olympia
-and a full 2:1 band on the night machine.
+The sheet is cropped to that machine's own paper shape, so the same cream page
+is a tall portrait on six of the seven machines and a wider band on the
+olympia.
 
 ### Open a text file
 
 Loads a `.txt` or `.md` file onto the paper. It **replaces** whatever is there,
 and only the first 4,000 characters are kept — with no warning if the file was
-longer.
+longer. If the file can't be read at all, the word says so for a moment.
 
 ### Screen 7 — the typed page
 
@@ -573,10 +570,11 @@ The page on its own, without the machine.
 | **Copy the text** | Puts the text on your clipboard |
 | **Send as a letter** | Carries the text to the writing screen, on cream letter paper |
 
-> **Warning:** **Send as a letter** replaces the whole letter you have in
-> progress — every sheet, both sides — with a single cream page holding the typed
-> text. Stickers, photos and the envelope are kept. If the typed text is over 700
-> words it is trimmed without warning. The machine sheet you chose doesn't travel
+> **Send as a letter** replaces the whole letter you have in progress — every
+> sheet, both sides — with a single cream page holding the typed text. When there
+> is a letter to lose it asks first: the word becomes **Replace your letter?**,
+> and pressing it again goes ahead. Stickers, photos and the envelope are kept.
+> Text over 700 words is trimmed, and the machine sheet you chose doesn't travel
 > with it.
 
 ---
@@ -596,10 +594,6 @@ screen is the only way to get anything out of the app as a file.
 every letter and every visitor. The send screen is the letter as your reader
 *would* see it, on your own screen.
 
-**Only the sheet you're looking at is shown on the Envelope and Send screens.**
-If your letter runs to three sheets, the reader's view shows whichever one was
-selected when you pressed Done, with no way to page through the rest.
-
 **Overflowing writing is hidden, not moved.** Past the "Sheet full" point the
 surplus text is simply invisible, and **Add a sheet** gives you a blank one — it
 doesn't flow the overflow across.
@@ -609,10 +603,6 @@ a photograph is final.
 
 **Objects belong to the whole letter, not to a sheet.** Turn the sheet over, or
 page to sheet 2, and the same stickers and the same photograph are still there.
-
-**A diary still arrives in an envelope.** The envelope screen is skipped for a
-diary, but the send screen still seals it inside the default cream envelope — so
-you get an envelope you were never offered a chance to choose.
 
 **It wants a desktop-sized window.** It works down to about 900 × 600. The sheet
 scales with the window, so it gets smaller as the window does, and the step trail
@@ -641,7 +631,7 @@ The full catalogue, in numbers.
 | Envelopes | 10, plus "No envelope" |
 | Wax seals for the envelope | 18, plus "No seal" |
 | Sticker cut-outs | 115, in 7 trays |
-| Typewriters | 8 |
+| Typewriters | 7 |
 | Sheets for the typewriter | 4 |
 | Backdrops | 47 |
 | Desk colours | 9, plus a colour wheel |
@@ -682,7 +672,7 @@ the middle, the count and the main button on the right.
 | Add a sheet | Word | A fresh sheet on the stack |
 | Sign it / Remove signature | Word | The signature slot |
 | Spell check | Word | Browser spell checking on or off |
-| `133 / 700` | Counter | Words in the whole letter |
+| `93 / 700` | Counter | Words in the whole letter |
 | **Done** | Button | To the envelope, or straight to Send for a diary |
 
 ### Screen 4 — the envelope
@@ -701,14 +691,14 @@ the middle, the count and the main button on the right.
 | Control | What it does |
 |---|---|
 | Writing runs off this sheet — add another | Only when the letter overflows. Back to writing, on a fresh sheet |
-| Copy the link · WhatsApp · Mail · Messages | All copy the same fixed address to your clipboard |
+| Copy the link · WhatsApp · Mail · Messages | All copy the same fixed address to your clipboard. The one you press is the one that says so |
 | Seal it again | Closes the envelope so you can watch it open again |
 
 ### Screen 6 — the typewriter
 
 | Control | Type | What it does |
 |---|---|---|
-| Machine | Drawer | Eight typewriters |
+| Machine | Drawer | Seven typewriters |
 | Sheet | Drawer | Four papers for the platen |
 | Format | Drawer | Replace the text with a template |
 | Open a text file | Word | Load a `.txt` or `.md` |
@@ -980,8 +970,8 @@ The writing surface needs a browser that supports
 Firefox won't work.
 
 **The typewriter keys light up but nothing is typed.**
-Click the paper in the machine first. The key glow listens to the whole window,
-but the typing goes wherever the cursor is.
+Click the paper in the machine. It takes the keyboard on its own when you
+arrive, but a click elsewhere — in a drawer, say — can take it away again.
 
 **My backdrop picture didn't appear.**
 It has to be at least 1280 × 720. The Desk drawer shows a note with the size you
@@ -989,10 +979,6 @@ offered when it refuses one.
 
 **My letter disappeared.**
 Nothing is saved between page loads. A refresh starts a new letter.
-
-**"Sheet full — add another" appears the moment I arrive.**
-The app starts with a sample letter in it, and on a small or wide paper that
-sample already overflows. Pick a taller paper, or clear the text.
 
 **The step trail is missing.**
 It hides itself on windows 820 pixels wide or narrower. The Back button still

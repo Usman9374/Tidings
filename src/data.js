@@ -16,9 +16,7 @@ const BG = 'uploads/backgrounds/';
 
 const SEED_FRONT = `Dear Amal,
 
-The rain came in off the sea this morning and did not stop, so I stayed in and wrote to you instead of going out. There is a particular kind of quiet that only arrives with weather, and I wanted to hand you some of it.
-
-I have been keeping the small things for you: the bakery on the corner that opens at six, the tram that never quite comes on time, the way the light lands on the kitchen table at four. None of it is news. All of it is yours.
+The rain came in off the sea this morning and did not stop, so I stayed in and wrote to you instead of going out. The bakery on the corner opens at six now, and the tram is still never on time. None of it is news — all of it is yours.
 
 Write back when you can. I will keep the kettle on.
 
@@ -313,19 +311,6 @@ const MACHINES = {
       { y: 80, start: 18.5, pitch: 5.72, keys: ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S'] },
     ],
     keyW: 4.2,
-  },
-  night: {
-    label: 'the night machine', src: 'assets/typewriter-night.png',
-    asm: 1.0828, machineAspect: 0.7228,
-    sheet: { left: 10, width: 80, aspect: 0.5, top: 5, bottom: 9 },
-    space: { x: 55.92, y: 93.06, w: 46, h: 2.6 },
-    rows: [
-      { y: 61.18, start: 25.638, pitch: 6.422, keys: ['2', '3', '4', '5', '6', '7', '8', '9', '0', '-'] },
-      { y: 69.88, start: 23.385, pitch: 6.316, keys: ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'] },
-      { y: 79.06, start: 25.638, pitch: 6.121, keys: ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';'] },
-      { y: 86.59, start: 28.403, pitch: 6.28, keys: ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '?', '.', '/'] },
-    ],
-    keyW: 4.6,
   },
 };
 

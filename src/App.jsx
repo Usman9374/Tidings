@@ -90,6 +90,7 @@ export default class App extends React.Component {
   twRef = React.createRef();
   fileRef = React.createRef();
 
+  flashT = {};                       // the transient() timers, cleared on unmount
   urls = new Set();                  // object URLs this app created, revoked on removal
   nav = { idx: 0, screens: [] };     // this session's slice of browser history
   composing = false;
@@ -115,7 +116,8 @@ export default class App extends React.Component {
     stickerMode: 'shadow',
     stickerTab: 'foil',
     polaroids: [
-      { id: 4, shape: 'landscape', x: 60, y: 62, rot: 2.4, scale: 1, z: 4, caption: 'the kitchen table at four', src: SEED_PHOTO },
+      // low and to the right, clear of the writing on every paper the app opens on
+      { id: 4, shape: 'landscape', x: 77, y: 75, rot: 2.4, scale: 1, z: 4, caption: 'the kitchen table at four', src: SEED_PHOTO },
     ],
     selected: null,
     zTop: 4,
@@ -131,7 +133,9 @@ export default class App extends React.Component {
     opened: false,
     flipped: false,
     flipping: false,
-    copied: false,
+    copied: null,      // which copy word last succeeded, so only that one reports it
+    confirmSend: false,
+    fileError: false,
     twText: SEED_TW,
     machine: 'burgundy',
     twSheet: 0,
@@ -156,6 +160,10 @@ export default class App extends React.Component {
   // text element this screen has — the editor on 3, the reader's copy on 4 and 5.
   componentDidUpdate() {
     this.syncDoc();
+    // Arriving at the machine with nothing focused means the first keystrokes
+    // light up the keys and type nothing — so hand the paper the keyboard.
+    if (this.state.screen === 6 && this._wasScreen !== 6 && this.twRef.current) this.twRef.current.focus();
+    this._wasScreen = this.state.screen;
     const surf = this.surfRef.current;
     const el = surf && surf.querySelector('[data-text]');
     const full = !!el && (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2);
@@ -167,6 +175,7 @@ export default class App extends React.Component {
     window.removeEventListener('popstate', this.onPop);
     document.removeEventListener('beforeinput', this.onBeforeInput, true);
     clearTimeout(this.keyT);
+    Object.values(this.flashT).forEach(clearTimeout);
     this.urls.forEach((u) => URL.revokeObjectURL(u));
     this.urls.clear();
   }
@@ -275,9 +284,19 @@ export default class App extends React.Component {
     }));
   }
 
+  // This replaces the whole letter, so when there is a letter to lose it asks
+  // first — the word itself becomes the question, and pressing it again answers.
+  hasLetter() { return this.state.sheets.some((sh) => (sh.front + sh.back).trim()); }
+
   sendAsLetter() {
+    if (this.hasLetter() && !this.state.confirmSend) {
+      this.transient('confirmSend', true, 5000);
+      return;
+    }
+    clearTimeout(this.flashT.confirmSend);
     const cap = this.limit();
     const t = this.state.twText;
+    this.setState({ confirmSend: false });
     this.go(3, {
       medium: 'page', paperId: 'cream', side: 'front',
       sheets: [sheetOf(words(t) > cap ? trimWords(t, cap) : t)], sheetIdx: 0, full: false,
@@ -506,8 +525,11 @@ export default class App extends React.Component {
   addPolaroid(shape) {
     this.blurEditor();
     const rot = Math.round((Math.random() - 0.5) * 80) / 10;
+    // scattered like a sticker, so a second frame does not land exactly on the first
+    const x = 50 + (Math.random() - 0.5) * 12;
+    const y = 46 + (Math.random() - 0.5) * 12;
     this.setState((s) => ({
-      polaroids: s.polaroids.concat([{ id: s.nextId, shape, x: 50, y: 46, rot, scale: 1, z: s.zTop + 1, caption: '', src: '' }]),
+      polaroids: s.polaroids.concat([{ id: s.nextId, shape, x, y, rot, scale: 1, z: s.zTop + 1, caption: '', src: '' }]),
       selected: { coll: 'polaroids', id: s.nextId }, nextId: s.nextId + 1, zTop: s.zTop + 1,
     }));
   }
@@ -556,7 +578,8 @@ export default class App extends React.Component {
 
   // An own backdrop must be HD. Its average colour decides the field's ink.
   takeBackdrop(file) {
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { this.setState({ backdropNote: 'That file is not a picture.' }); return; }
     const url = this.own(file);
     const img = new Image();
     img.onload = () => {
@@ -596,13 +619,22 @@ export default class App extends React.Component {
 
   // — sharing —
 
-  copy(text) {
+  // A value that shows for a moment and then goes back to normal — the copy
+  // words' confirmation, the file-read error, the send confirmation.
+  transient(field, value, ms) {
+    clearTimeout(this.flashT[field]);
+    this.setState({ [field]: value });
+    this.flashT[field] = setTimeout(() => this.setState({ [field]: field === 'copied' ? null : false }), ms);
+  }
+
+  // `key` names the word that was pressed, so WhatsApp reporting success no
+  // longer makes the separate "Copy the link" word claim it instead.
+  copy(text, key) {
     try {
       const w = navigator.clipboard && navigator.clipboard.writeText(text);
       if (w && w.catch) w.catch(() => {});
     } catch (err) { /* clipboard unavailable */ }
-    this.setState({ copied: true });
-    setTimeout(() => this.setState({ copied: false }), 1600);
+    this.transient('copied', key, 1600);
   }
 
   // A plain-text file wound into the machine, in place of typing it out.
@@ -611,7 +643,13 @@ export default class App extends React.Component {
     e.target.value = '';
     if (!f) return;
     const fr = new FileReader();
-    fr.onload = () => this.setState({ twText: String(fr.result || '').slice(0, 4000) });
+    fr.onload = () => {
+      this.setState({ twText: String(fr.result || '').slice(0, 4000) });
+      // put the keyboard back on the paper, or the next keystroke goes nowhere
+      const ta = this.twRef.current;
+      if (ta) ta.focus();
+    };
+    fr.onerror = () => this.transient('fileError', true, 3000);
     fr.readAsText(f);
   }
 
@@ -669,7 +707,10 @@ export default class App extends React.Component {
     const isS3 = s.screen === 3, isS4 = s.screen === 4, isS5 = s.screen === 5, isS6 = s.screen === 6, isS7 = s.screen === 7;
     const isDesk = s.screen >= 3 && s.screen <= 5;
     const env = this.envelope();
-    const envOn = !!env;
+    // An envelope only exists for the media that get the envelope step. Without
+    // this a diary — which skips that step — still arrived on screen 5 sealed
+    // inside the default envelope, one nobody was ever given the chance to pick.
+    const envOn = !!env && !!ENVELOPED[s.medium];
     // the burgundy is too dark to be written on in ink; the rest take the letter's
     const envInk = (env && env.ink) || INK;
     const canFlip = !!(this.sheet().back || '').trim();
@@ -851,13 +892,15 @@ export default class App extends React.Component {
       }
       if (s.full) toggles.push(this.word('Writing runs off this sheet — add another', () => this.addPage(), { title: 'Back to the writing, on a fresh sheet' }));
       toggles.push(this.word('Keep writing', () => this.goBack(3), { quiet: true }));
-      toggles.push(this.word(s.copied ? 'Link copied' : 'Copy the link', () => this.copy(LINK), { quiet: true }));
+      toggles.push(this.word(s.copied === 'link' ? 'Link copied' : 'Copy the link', () => this.copy(LINK, 'link'), { quiet: true }));
       primary = this.primary('Send it', () => this.go(5, { opened: false, flipped: false }));
     }
     if (isS5) {
       if (s.full) toggles.push(this.word('Writing runs off this sheet — add another', () => this.addPage(), { title: 'Back to the writing, on a fresh sheet' }));
-      toggles.push(this.word(s.copied ? 'Link copied' : 'Copy the link', () => this.copy(LINK), { quiet: true }));
-      ['WhatsApp', 'Mail', 'Messages'].forEach((t) => toggles.push(this.word(t, () => this.copy(LINK), { quiet: true })));
+      toggles.push(this.word(s.copied === 'link' ? 'Link copied' : 'Copy the link', () => this.copy(LINK, 'link'), { quiet: true }));
+      ['WhatsApp', 'Mail', 'Messages'].forEach((t) => toggles.push(
+        this.word(s.copied === t ? 'Copied' : t, () => this.copy(LINK, t), { quiet: true, title: 'Copy the link for ' + t }),
+      ));
       toggles.push(this.word('Seal it again', () => this.setState({ opened: false, flipped: false, side: 'front' }), { quiet: true }));
     }
     if (isS6) {
@@ -876,17 +919,17 @@ export default class App extends React.Component {
         })),
       });
       menus.push(formatMenu);
-      toggles.push(this.word('Open a text file', () => { if (this.fileRef.current) this.fileRef.current.click(); }, { quiet: true, title: 'Wind a plain-text file into the machine' }));
+      toggles.push(this.word(s.fileError ? 'That file could not be read' : 'Open a text file', () => { if (this.fileRef.current) this.fileRef.current.click(); }, { quiet: true, on: s.fileError, title: 'Wind a plain-text file into the machine' }));
       toggles.push(this.word('Spell check', () => this.setState((v) => ({ spell: !v.spell })), { quiet: true, on: s.spell, pressed: s.spell }));
-      toggles.push(this.word('Send as a letter', () => this.sendAsLetter(), { quiet: true }));
+      toggles.push(this.word(s.confirmSend ? 'Replace your letter?' : 'Send as a letter', () => this.sendAsLetter(), { quiet: !s.confirmSend, on: s.confirmSend, title: 'Replaces the letter you have in progress' }));
       counter = words(s.twText) + ' words';
       primary = this.primary('Done', () => this.go(7));
     }
     if (isS7) {
       toggles.push(this.word('Download as text', () => this.download(), { quiet: true }));
-      toggles.push(this.word(s.copied ? 'Copied' : 'Copy the text', () => this.copy(s.twText), { quiet: true }));
+      toggles.push(this.word(s.copied === 'text' ? 'Copied' : 'Copy the text', () => this.copy(s.twText, 'text'), { quiet: true }));
       counter = words(s.twText) + ' words';
-      primary = this.primary('Send as a letter', () => this.sendAsLetter());
+      primary = this.primary(s.confirmSend ? 'Replace your letter?' : 'Send as a letter', () => this.sendAsLetter());
     }
 
     const isSel = (coll, id) => !!s.selected && s.selected.coll === coll && s.selected.id === id;
@@ -920,13 +963,17 @@ export default class App extends React.Component {
       backdropUrl: isDesk && s.backdrop ? s.backdrop.url : null,
       fieldRef: this.fieldRef,
       fieldStyle: Object.assign({
-        gridArea: '2 / 1', position: 'relative', minHeight: 0, overflow: isDesk ? 'auto' : 'hidden',
+        gridArea: '2 / 1', position: 'relative', minHeight: 0,
+        // The typewriter scrolls for the same reason the desk does: in a short
+        // window the machine is taller than the field, and the keyboard — the
+        // whole point of the screen — was being cut off with no way to reach it.
+        overflow: isDesk || isS6 || isS7 ? 'auto' : 'hidden',
         containerType: 'size', display: 'flex',
         // Centre the screen's contents rather than pinning them to the top.
         // The desk keeps flex-start because its own column already centres
         // itself against min-height:100% — centring a scrollable flex container
         // as well would push its top edge out of reach when content overflows.
-        alignItems: isDesk ? 'flex-start' : 'center',
+        alignItems: isDesk || isS6 || isS7 ? 'flex-start' : 'center',
         justifyContent: 'center',
       }, isDesk && s.backdrop ? { '--color-text': s.backdrop.dark ? LIGHT_INK : INK, color: 'var(--color-text)' } : {}),
       fieldPointerDown: isS3 ? (e) => { if (s.selected && !e.target.closest('[data-obj]')) this.setState({ selected: null }); } : undefined,
@@ -938,7 +985,10 @@ export default class App extends React.Component {
       topRight: isS3 ? (s.side === 'front' ? 'Front' : 'Back') : (isS5 ? 'As your reader sees it' : null),
       // Paging through a stack belongs with the status it reports on, not in the
       // row of actions — so the toolbar stays a list of things you can do.
-      sheetNav: isS3 && s.sheets.length > 1 ? {
+      // The pager belongs to every screen that shows a sheet, not just the
+      // writing one: without it a letter of three sheets reached the reader as
+      // whichever single sheet was selected when Done was pressed.
+      sheetNav: (isS3 || isS4 || (isS5 && opened)) && s.sheets.length > 1 ? {
         label: 'Sheet ' + (s.sheetIdx + 1) + ' of ' + s.sheets.length,
         prev: s.sheetIdx > 0 ? () => this.turnTo(s.sheetIdx - 1) : null,
         next: s.sheetIdx < s.sheets.length - 1 ? () => this.turnTo(s.sheetIdx + 1) : null,
@@ -967,7 +1017,11 @@ export default class App extends React.Component {
           ? 'drop-shadow(0 24px 30px color-mix(in srgb, #201e1d 18%, transparent)) drop-shadow(0 3px 5px color-mix(in srgb, #201e1d 13%, transparent))'
           : 'drop-shadow(0 22px 30px color-mix(in srgb, #201e1d 15%, transparent)) drop-shadow(0 2px 4px color-mix(in srgb, #201e1d 12%, transparent))',
         cursor: isS5 && canFlip ? 'pointer' : 'default',
-        animation: isS5 ? 'tdRise 700ms cubic-bezier(.2,.7,.2,1) both' : (s.flipping ? 'tdFlip 520ms ease-in-out both' : 'none'),
+        // The flip has to outrank the rise, or it never plays; and the rise is a
+        // one-off arrival, so it must not replay every time the sheet is turned.
+        animation: s.flipping
+          ? 'tdFlip 520ms ease-in-out both'
+          : (isS5 && !s.flipped ? 'tdRise 700ms cubic-bezier(.2,.7,.2,1) both' : 'none'),
       },
       paper: p,
       paperSrc: R(p.img),
@@ -1061,7 +1115,14 @@ export default class App extends React.Component {
       signature: s.signature.on,
       signatureSrc: s.signature.src,
       setSignature: (file) => this.setSignature(file),
-      sigStyle: { position: 'absolute', zIndex: 9, right: (p.pad[1] + 1) + 'cqw', bottom: (p.pad[2] + 1) + 'cqw', width: '22cqw', height: '7cqw', mixBlendMode: 'multiply', pointerEvents: isS3 ? 'auto' : 'none' },
+      // multiply is what makes a signature read as ink rather than a pasted
+      // rectangle — but applied to an empty slot it only greys out its own
+      // dashed outline and prompt
+      sigStyle: {
+        position: 'absolute', zIndex: 9, right: (p.pad[1] + 1) + 'cqw', bottom: (p.pad[2] + 1) + 'cqw',
+        width: '22cqw', height: '7cqw', pointerEvents: isS3 ? 'auto' : 'none',
+        mixBlendMode: s.signature.src ? 'multiply' : 'normal',
+      },
 
       // — envelope —
       // Ten of them, nine photographed and one plain, each with its own aspect

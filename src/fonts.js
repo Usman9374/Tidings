@@ -92,9 +92,13 @@ export async function prepareFont(f) {
   const ref = BY_ID[DEFAULT_FONT];
   if (f.id !== DEFAULT_FONT) await loadFaces();
   await Promise.all([document.fonts.load(`100px ${ref.family}`, 'x'), document.fonts.load(`100px ${f.family}`, 'x')]);
-  if (!metrics.has(ref.id)) metrics.set(ref.id, measure(ref.family));
-  metrics.set(f.id, measure(f.family));
-  return metrics.get(f.id);
+  // Only cache a measurement that worked. Caching a null one meant a face that
+  // lost its loading race once was never measured again for the rest of the
+  // session — it simply stayed unfitted, at k = 1 and dy = 0.
+  if (!metrics.has(ref.id)) { const r = measure(ref.family); if (r) metrics.set(ref.id, r); }
+  const m = measure(f.family);
+  if (m) metrics.set(f.id, m);
+  return m;
 }
 
 export const prepareAll = () => Promise.all(LETTER_FONTS.map((f) => prepareFont(f).catch(() => null)));

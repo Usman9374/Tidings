@@ -28,7 +28,7 @@ src/
   App.jsx               all state, all computed styles — renderVals() returns the
                         single object every screen reads from
   data.js               the design tables: paper geometry for 38 surfaces, ~150
-                        cut-outs in seven trays, 10 envelopes, 8 machines, the 47
+                        cut-outs in seven trays, 10 envelopes, 7 machines, the 47
                         backdrops, polaroid shapes, seed copy
   assets.js             logical path -> served URL (public/), and the chooser art
   fonts.js              the 40 letter fonts, loading them, and fitting each one
@@ -83,6 +83,48 @@ interaction state (a menu's open flag, a drag in progress, the wheel's hue).
 | 5 | `isS5` | as your reader sees it |
 | 6 | `isS6` | the typewriter |
 | 7 | `isS7` | the typed page |
+
+## Bug fixes (12 September 2026)
+
+Defects found by reading the code against what it claims to do, each reproduced
+before it was changed and checked in a browser afterwards.
+
+- **A diary arrived sealed in an envelope it was never offered.** `showEnvelope`
+  never consulted the table that decides which media get the envelope step, so a
+  diary — which skips that step — still reached the send screen inside the
+  default envelope.
+- **A letter of more than one sheet reached the reader as a single sheet.** The
+  pager was gated on the writing screen, so the envelope and send screens showed
+  whichever sheet happened to be selected and gave no way to turn the page.
+- **"Send as a letter" destroyed the letter in progress without asking.** When
+  there is a letter to lose the word now becomes "Replace your letter?" and a
+  second press goes ahead.
+- **The app opened in an error state.** The sample letter was 133 words and the
+  paper the Letter button lands on could not hold it, so "Sheet full — add
+  another" was showing before the writer had done anything. The sample is now 68
+  words and fits the paper every entry point opens on; the seeded photograph
+  moved clear of the writing on all three.
+- **The typewriter had no keyboard on arrival** — the keys lit up and nothing
+  typed. The paper takes focus on entry, and again after a file is opened.
+- **An addressed envelope could not be opened.** The address block stopped the
+  click that opens it; it now does that only while it can be typed in.
+- **The flip animation never played.** On the send screen the arrival animation
+  unconditionally won, so turning the sheet over just blanked the text. The flip
+  now outranks it, and the arrival no longer replays on every turn.
+- **One shared flag meant the wrong word reported a copy** — pressing WhatsApp
+  made "Copy the link" claim it. Each word now reports its own.
+- **The typewriter could not be scrolled to in a short window**, so the keyboard
+  — the whole point of the screen — was unreachable.
+- **A font that lost its loading race stayed unfitted for the session**, because
+  a failed measurement was cached as if it had succeeded.
+- **A file that could not be read did nothing at all**, and a backdrop that was
+  not a picture was refused silently. Both say so now.
+- **Multiply was dimming the empty signature slot's own outline and prompt.**
+- **Every new photograph landed on exactly the same spot**; they scatter now, as
+  stickers already did.
+
+Also removed at Usman's request: **the night machine**, its photograph and its
+key grid. Seven machines remain.
 
 ## Copy and conduct (12 September 2026)
 
